@@ -26,6 +26,7 @@ The basic data that goes into a BIOM table is the list of sample ids, the list o
 >>> import pandas as pd
 ...
 >>> sample_ids = ['A', 'B', 'C']
+>>> bc_sample_ids = ['X', 'Y', 'Z']
 >>> feature_ids = ['OTU1', 'OTU2', 'OTU3', 'OTU4', 'OTU5']
 >>> data = array([[1, 0, 0],
 ...               [3, 2, 0],
@@ -33,6 +34,8 @@ The basic data that goes into a BIOM table is the list of sample ids, the list o
 ...               [1, 4, 2],
 ...               [0, 4, 1]])
 ...
+table_bc = pd.DataFrame(data, index=feature_ids, columns=bc_sample_ids)
+>>> table_bc
 >>> table1 = pd.DataFrame(data, index=feature_ids, columns=sample_ids)
 >>> table1
 Populating the interactive namespace from numpy and matplotlib
@@ -327,8 +330,8 @@ This could be implemented in python as follows:
 ```
 
 ```python
->>> table1
-      A  B  C
+>>> table_bc
+      X  Y  Z
 OTU1  1  0  0
 OTU2  3  2  0
 OTU3  0  0  6
@@ -339,52 +342,52 @@ OTU5  0  4  1
 Let's now apply this to some pairs of samples:
 
 ```python
->>> print(bray_curtis_distance(table1, 'A', 'B'))
+>>> print(bray_curtis_distance(table_bc, 'X', 'Y'))
 0.6
 ```
 
 ```python
->>> print(bray_curtis_distance(table1, 'A', 'C'))
+>>> print(bray_curtis_distance(table_bc, 'X', 'Z'))
 0.857142857143
 ```
 
 ```python
->>> print(bray_curtis_distance(table1, 'B', 'C'))
+>>> print(bray_curtis_distance(table_bc, 'Y', 'Z'))
 0.684210526316
 ```
 
 ```python
->>> print(bray_curtis_distance(table1, 'A', 'A'))
+>>> print(bray_curtis_distance(table_bc, 'X', 'X'))
 0.0
 ```
 
 ```python
->>> print(bray_curtis_distance(table1, 'C', 'B'))
+>>> print(bray_curtis_distance(table_bc, 'Z', 'Y'))
 0.684210526316
 ```
 
-Ultimately, we likely want to apply this to all pairs of samples to get a distance matrix containing all pairwise distances. Let's define a function for that, and then compute all pairwise Bray-Curtis distances between samples `A`, `B` and `C`.
+Ultimately, we likely want to apply this to all pairs of samples to get a distance matrix containing all pairwise distances. Let's define a function for that, and then compute all pairwise Bray-Curtis distances between samples `X`, `Y` and `Z`.
 
 ```python
 >>> from skbio.stats.distance import DistanceMatrix
 >>> from numpy import zeros
 ...
 >>> def table_to_distances(table, pairwise_distance_fn):
-...     sample_ids = table.columns
-...     num_samples = len(sample_ids)
+...     bc_sample_ids = table.columns
+...     num_samples = len(bc_sample_ids)
 ...     data = zeros((num_samples, num_samples))
-...     for i, sample1_id in enumerate(sample_ids):
-...         for j, sample2_id in enumerate(sample_ids[:i]):
-...             data[i,j] = data[j,i] = pairwise_distance_fn(table, sample1_id, sample2_id)
-...     return DistanceMatrix(data, sample_ids)
+...     for i, bc_sample1_id in enumerate(bc_sample_ids):
+...         for j, bc_sample2_id in enumerate(bc_sample_ids[:i]):
+...             data[i,j] = data[j,i] = pairwise_distance_fn(table, bc_sample1_id, bc_sample2_id)
+...     return DistanceMatrix(data, bc_sample_ids)
 ```
 
 ```python
->>> bc_dm = table_to_distances(table1, bray_curtis_distance)
+>>> bc_dm = table_to_distances(table_bc, bray_curtis_distance)
 >>> print(bc_dm)
 3x3 distance matrix
 IDs:
-'A', 'B', 'C'
+'X', 'Y', 'Z'
 Data:
 [[ 0.          0.6         0.85714286]
  [ 0.6         0.          0.68421053]
